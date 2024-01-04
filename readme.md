@@ -5,8 +5,6 @@ Share and browse files between workstations in a network
 
 *This app is still in development*
 
----
-
 # Build and running
 
 - Server
