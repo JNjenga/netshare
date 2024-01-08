@@ -1,0 +1,14 @@
+8th Jan 2024
+------------
+
+Goal:   
+    - [x] Working directory as repository/home of the server
+    - [x] ls command, List all files in the repository
+    - [x] Bonus: Copy file from server to client
+
+Next up: 
+    - Error handling in the protocol: How to communicate reqeust error
+    - Downloaded file name, who should specifiy the name and locaiton to store
+    - Directory browsing
+    - Protocol documentation
+    - Repl for server: CRUD-ing files to repo
