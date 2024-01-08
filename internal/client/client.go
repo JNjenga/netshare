@@ -13,7 +13,6 @@ const (
 )
 
 func Ls() string {
-    log.Println("Connecting to server at {0}", SERVER_HOST);
 
     conn, err := net.Dial(SERVER_TYPE, SERVER_HOST)
 
