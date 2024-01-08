@@ -5,6 +5,8 @@ import (
     "net"
     "io"
     "encoding/binary"
+
+    "github.com/JNjenga/netshare/internal/filesystem"
 )
 
 const (
@@ -13,7 +15,6 @@ const (
 )
 
 func Ls() string {
-
     conn, err := net.Dial(SERVER_TYPE, SERVER_HOST)
 
     checkErr(err)
@@ -29,27 +30,39 @@ func Ls() string {
     checkErr(err)
 
     response, err := io.ReadAll(conn)
-
     checkErr(err)
 
     return string(response)
 }
 
-func Cp() [] byte {
+func Cp(file_name string) {
     log.Println("Connecting to server at {0}", SERVER_HOST);
 
     conn, err := net.Dial(SERVER_TYPE, SERVER_HOST)
 
     checkErr(err)
 
-    // reader := io.NewReader(conn)
-    b, err := io.ReadAll(conn)
-
-    log.Print(string(b))
+    // Send command
+    request := []byte("cp " + file_name)
+    request_len := make([]byte, 4)
+    binary.LittleEndian.PutUint32(request_len, uint32(len(request)))
+    
+    conn.Write(request_len)
+    conn.Write(request)
 
     checkErr(err)
 
-    return b
+    response, err := io.ReadAll(conn)
+    checkErr(err)
+
+    // Save file
+
+    if len(response) > 0 {
+        log.Println("Writing file")
+        filesystem.WriteFile(file_name + "_downloaded.txt", response)
+    } else {
+        log.Println("Null response")
+    }
 }
 
 func Cd() {

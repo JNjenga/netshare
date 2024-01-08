@@ -76,7 +76,22 @@ func handleConnection(conn net.Conn, repo_path string) {
 
             break;
         // case "cd":
-        // case "cp":
+        case "cp":
+            if len(command) < 2 {
+                log.Println("Error: File path not provided")
+                conn.Close()
+                return
+            }
+
+            log.Printf("path: %s\n", repo_path + "/" + command[1])
+
+            // TODO: Does file exist?
+            data, err := filesystem.ReadFile(repo_path + "/" + command[1])
+            checkErr(err)
+
+            writeResponse(conn, data)
+
+            break
     }
 
     conn.Close()

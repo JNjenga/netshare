@@ -4,13 +4,14 @@ import (
     "os"
     "fmt"
     "bufio"
+    "strings"
 
     "github.com/JNjenga/netshare/internal/client"
 )
 
 func main() {
     should_exit := false
-    var command string
+    var command []string
 
     scanner := bufio.NewScanner(os.Stdin)
 
@@ -19,16 +20,21 @@ func main() {
 
         scanner.Scan()
 
-        command = scanner.Text()
+        command = strings.Split(scanner.Text(), " ")
 
-        switch command {
+        switch command[0] {
             case "ls":
                 response := client.Ls()
-                fmt.Println("Response:", response)
+                fmt.Println(response)
             case "cd":
                 client.Cd();
             case "cp":
-                client.Cp();
+                if len(command) < 2 {
+                    fmt.Println("Error: Specify file name")
+                    break
+                }
+
+                client.Cp(command[1]);
             case "exit":
                 should_exit = true
         }
