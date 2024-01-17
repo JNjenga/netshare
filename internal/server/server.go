@@ -6,6 +6,7 @@ import (
     "io"
     "encoding/binary"
     "strings"
+    "fmt"
     // "bufio"
     "github.com/JNjenga/netshare/internal/filesystem"
 )
@@ -15,7 +16,7 @@ const (
     SERVER_TYPE = "tcp"
 )
 
-func Start(repo_path string) {
+func Start(repo_path string, cwd *string) {
     log.Println("Starting server at {}", SERVER_HOST);
 
     ln, err := net.Listen(SERVER_TYPE, SERVER_HOST)
@@ -31,11 +32,11 @@ func Start(repo_path string) {
 
         checkErr(err)
 
-        go handleConnection(conn, repo_path)
+        go handleConnection(conn, repo_path, cwd)
     }
 }
 
-func handleConnection(conn net.Conn, repo_path string) {
+func handleConnection(conn net.Conn, repo_path string, cwd *string) {
     log.Println("Processing connection...")
 
     var command_len_bytes [4]byte
@@ -62,20 +63,46 @@ func handleConnection(conn net.Conn, repo_path string) {
 
     switch command[0] {
         case "ls":
-            dirEntries, err := filesystem.ListDir(repo_path, ".")
+            dirEntries, err := filesystem.ListDir(repo_path, *cwd)
             checkErr(err)
 
             var files string
 
             for _, dirEntry := range dirEntries {
+                if dirEntry.IsDir() {
+                    files += "./"
+                }
                 files += dirEntry.Name() + "\n"
             }
+
             log.Printf("Files:\n%s", files)
 
             writeResponse(conn, []byte(files))
 
             break;
-        // case "cd":
+        case "cd":
+            if len(command) < 2 {
+                log.Println("Error: File path not provided")
+                conn.Close()
+                return
+            }
+
+            log.Printf("Path: %s\n", command[1]);
+
+            path := repo_path + "/" + *cwd + "/" + command[1];
+
+            is_dir, err := filesystem.IsDir(path)
+
+            checkErr(err)
+
+            if is_dir {
+                // TODO: Handle multiple kinds of paths
+                // relative, absolute etc
+                *cwd = command[1]
+                writeResponse(conn, []byte(fmt.Sprintf("Changed directory to %s\n", cwd)));
+            } else {
+                writeResponse(conn, []byte("Path not dir or not found\n"));
+            }
         case "cp":
             if len(command) < 2 {
                 log.Println("Error: File path not provided")
@@ -83,10 +110,10 @@ func handleConnection(conn net.Conn, repo_path string) {
                 return
             }
 
-            log.Printf("path: %s\n", repo_path + "/" + command[1])
+            log.Printf("path: %s\n", repo_path + "/" + *cwd + "/" + command[1])
 
             // TODO: Does file exist?
-            data, err := filesystem.ReadFile(repo_path + "/" + command[1])
+            data, err := filesystem.ReadFile(repo_path + "/" + *cwd + "/" + command[1])
             checkErr(err)
 
             writeResponse(conn, data)

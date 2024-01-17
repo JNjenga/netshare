@@ -65,7 +65,34 @@ func Cp(file_name string) {
     }
 }
 
-func Cd() {
+func Cd(path string) string {
+    log.Println("Sending cd command path: {0}", path)
+
+    conn, err := net.Dial(SERVER_TYPE, SERVER_HOST)
+
+    checkErr(err)
+
+    // Send command
+    request := []byte("cd " + path)
+    request_len := make([]byte, 4)
+    binary.LittleEndian.PutUint32(request_len, uint32(len(request)))
+    
+    conn.Write(request_len)
+    conn.Write(request)
+
+    checkErr(err)
+
+    response, err := io.ReadAll(conn)
+    checkErr(err)
+
+    response_str := string(response)
+    if len(response) > 0 {
+        log.Println("Response: ", string(response))
+    } else {
+        log.Println("Null response")
+    }
+
+    return response_str
 }
 
 func checkErr(err error) {

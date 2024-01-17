@@ -23,8 +23,10 @@ func main() {
 
     scanner := bufio.NewScanner(os.Stdin)
 
+    cwd := "."
+
     for !should_exit {
-        fmt.Print(">")
+        fmt.Print(cwd, ">")
 
         scanner.Scan()
 
@@ -35,7 +37,12 @@ func main() {
                 response := client.Ls()
                 fmt.Println(response)
             case "cd":
-                client.Cd();
+                if len(command) < 2 {
+                    fmt.Println("Error: Specify path")
+                    break
+                }
+
+                cwd = client.Cd(command[1]);
             case "cp":
                 if len(command) < 2 {
                     fmt.Println("Error: Specify file name")

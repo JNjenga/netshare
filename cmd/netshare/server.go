@@ -14,6 +14,7 @@ func main() {
     }
 
     repo_path := cmdArgs[1]
+    cwd := "."
 
-    server.Start(repo_path)
+    server.Start(repo_path, &cwd)
 }

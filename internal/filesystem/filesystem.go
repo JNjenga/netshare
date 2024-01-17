@@ -12,6 +12,24 @@ func ListDir(root string, path string) ([] fs.DirEntry, error) {
     return fs.ReadDir(fsys, path)
 }
 
+func IsDir(path string) (bool, error) {
+    stat, err := os.Stat(path)
+
+    if err == nil { return stat.IsDir(), nil }
+
+    return false, err
+}
+
+func Exists(path string) (bool, error) {
+    _, err := os.Stat(path)
+
+    if err == nil { return true, nil }
+
+    if os.IsNotExist(err) { return false, nil }
+
+    return false, err
+}
+
 func ReadFile(path string) ([] byte, error) {
     log.Printf("Reading file path: '%s'\n", path)
     return os.ReadFile(path)
