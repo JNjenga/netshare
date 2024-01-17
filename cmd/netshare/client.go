@@ -9,6 +9,14 @@ import (
     "github.com/JNjenga/netshare/internal/client"
 )
 
+func printHelp() {
+    fmt.Println("ls             - List directory");
+    fmt.Println("cd [dir]       - Change directory");
+    fmt.Println("cp [file_path] - Download file from server to local");
+    fmt.Println("help           - Print this message");
+    fmt.Println("exit           - Exit repl application");
+}
+
 func main() {
     should_exit := false
     var command []string
@@ -35,12 +43,12 @@ func main() {
                 }
 
                 client.Cp(command[1]);
+            case "help":
+                printHelp()
             case "exit":
                 should_exit = true
+            default:
+                fmt.Println("Unknown command")
         }
     }
-
-    // data := client.Download()
-
-    // os.WriteFile("./downloaded_file.txt", data, 0666)
 }
