@@ -6,7 +6,7 @@ import (
     "io"
     "encoding/binary"
     "strings"
-    "fmt"
+    // "fmt"
     // "bufio"
     "github.com/JNjenga/netshare/internal/filesystem"
 )
@@ -39,25 +39,9 @@ func Start(repo_path string, cwd *string) {
 func handleConnection(conn net.Conn, repo_path string, cwd *string) {
     log.Println("Processing connection...")
 
-    var command_len_bytes [4]byte
-    var command_len int
-    
-    _, err := io.ReadAtLeast(conn, command_len_bytes[:], 4)
-    checkErr(err)
+    request,_ := readRequest(conn);
 
-    command_len = int(binary.LittleEndian.Uint32(command_len_bytes[:]))
-
-    // Read command
-    command_buffer := make([]byte, command_len)
-    _, err = io.ReadAtLeast(conn, command_buffer, command_len)
-    checkErr(err)
-
-    if len(command_buffer) == 0 {
-        conn.Close()
-        return
-    }
-
-    command := strings.Split(string(command_buffer), " ")
+    command := strings.Split(request, "\n")
 
     log.Println("Command:", command)
 
@@ -99,7 +83,7 @@ func handleConnection(conn net.Conn, repo_path string, cwd *string) {
                 // TODO: Handle multiple kinds of paths
                 // relative, absolute etc
                 *cwd = command[1]
-                writeResponse(conn, []byte(fmt.Sprintf("Changed directory to %s\n", cwd)));
+                writeResponse(conn, []byte(*cwd));
             } else {
                 writeResponse(conn, []byte("Path not dir or not found\n"));
             }
@@ -126,10 +110,38 @@ func handleConnection(conn net.Conn, repo_path string, cwd *string) {
     log.Println("Done Writing file")
 }
 
+func readRequest(conn net.Conn) (string, error) {
+    var request_len_bytes [4] byte
+    var request_len int
+
+    _, err := io.ReadAtLeast(conn, request_len_bytes[:], 4);
+    if err != nil {
+        return "", err
+    }
+
+    request_len = int(binary.LittleEndian.Uint32(request_len_bytes[:]))
+
+    // Read request
+    request := make([]byte, request_len)
+    _, err = io.ReadAtLeast(conn, request, request_len)
+    if err != nil {
+        return "", err
+    }
+
+    if len(request) == 0 {
+        return "", nil 
+    }
+
+    return string(request), nil
+}
+
 func writeResponse(conn net.Conn, data []byte){
     response := make([] byte, 4)
     binary.LittleEndian.PutUint32(response, uint32(len(data)))
 
+    var status_code byte = 0b00000000
+
+    response = append(response, status_code)
     response = append(response, data...)
 
     _, err := conn.Write(response)
