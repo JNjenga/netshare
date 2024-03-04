@@ -10,10 +10,12 @@ Share and browse files between workstations in a network
 - Server
 
     `go build cmd/netshare/server.go`
+    `server <repo_path>`
 
 - Client
 
     `go build cmd/netshare/client.go`
+    `client`
 
 # Features / Road map / Ideas
 
